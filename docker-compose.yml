@@ -1,0 +1,71 @@
+﻿version: '3'
+services:
+  db-globaluser:
+    image: 'mysql/mysql-server:5.7'
+    container_name: db-globaluser
+    command:
+      - mysqld
+      - '--character-set-server=utf8mb4'
+      - '--collation-server=utf8mb4_unicode_ci'
+      - '--bind-address=0.0.0.0'
+    expose:
+      - '3306'
+    networks:
+      - globalusernet
+    volumes:
+      - 'db-globaluser-data:/var/lib/mysql'
+      - '../globalusernet/my.cnf:/etc/my.cnf'
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: 'true'
+      MYSQL_USER: globaluser
+      MYSQL_PASSWORD: s4u123456
+      MYSQL_DATABASE: globaluserDB
+    restart: always
+  globaluser-dkr:
+    build: ../globaluserapi
+    container_name: globaluser-dkr
+    depends_on:
+      - db-globaluser
+    networks:
+      - globalusernet
+      - ecatpaycorenet
+    restart: always
+  db-ecatpaycoreapi:
+    image: 'mysql/mysql-server:5.7'
+    container_name: db-ecatpaycore
+    command:
+      - mysqld
+      - '--character-set-server=utf8mb4'
+      - '--collation-server=utf8mb4_unicode_ci'
+      - '--bind-address=0.0.0.0'
+    expose:
+      - '3306'
+    networks:
+      - ecatpaycorenet
+    volumes:
+      - 'db-ecatpaycore-data:/var/lib/mysql'
+      - '../ecatpaycorenet/my.cnf:/etc/my.cnf'
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: 'true'
+      MYSQL_USER: ecatpaycoreapi
+      MYSQL_PASSWORD: s4u123456
+      MYSQL_DATABASE: ecatpaycoreapiDB
+    restart: always
+  ecatpaycore-dkr:
+    build: ../ecatpaycorenet
+    container_name: ecatpaycore-dkr
+    depends_on:
+      - db-ecatpaycore
+    networks:
+      - ecatpaycorenet
+    ports:
+      - '3000:3000'
+    restart: always
+networks:
+  ecatpaycorenet:
+    driver: bridge
+  globalusernet:
+    driver: bridge
+volumes:
+  db-globaluser-data: null
+  db-ecatpaycore-data: null
